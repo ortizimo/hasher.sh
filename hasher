@@ -1,0 +1,85 @@
+#!/bin/bash
+# author: Saulo Sal Ortiz
+# date: 2022.05.04
+# update: 2025.09.08
+# name: hasher.sh
+# version: 1.9.1
+# desc: Uses md5sum and sha1sum CLI and stat command
+
+#-------------------
+# CODE START
+#-------------------
+
+# global CLI
+alias myscript="hasher.sh"
+
+# What the user will see
+echo ""
+echo -e "\033[1mHASHER! v1.9.1\033[0m"
+echo -e "\033[3mFind hashes of PE and non-PE files\033[0m"
+echo ""
+
+# Declared variables
+TARGET_FILE=${1}
+
+# script usage
+if [ -z ${1} ]
+then
+	echo "Usage: hasher <filename>"
+	exit 1
+fi
+
+# Select a process
+while true; do
+	read -p "Do you want to do a single file or the entire directory? (s/e) " se
+	case $se in
+		[Ss]* ) break;;
+		[Ee]* ) for file in *; do
+			if [ -f "$file" ]; then
+				echo "Processing $file..."
+			fi
+		done
+		exit 1;;
+	esac
+done
+
+# Enter a valid file
+if [ ! -f ${1} ]
+then
+	echo "${1} is not a valid file...please use a valid file!"
+	exit 1
+fi
+
+
+# *****************************************************
+# ********** Select a short or long scan **************
+# *****************************************************
+while true; do
+        read -p "Do you want to do a Short or a Long hash? (s/l) " sl
+        case $sl in
+                [Ss]* ) pehash ${1}; exit 1;;
+                [Ll]* ) break;;	# do not use any tools from here
+        esac
+done
+
+
+#------------------
+# TOOLS
+#------------------
+
+echo ""
+echo -e "\033[1;33mFile Specs (Please wait!)\033[0m"
+echo "-------------------------------------------------------------"
+peframe ${1} | grep "filename\|filetype\|filesize\|imphash\|datetime\|features"
+peframe ${1} | grep "Anti Debug" -A 10 -B 2
+echo "--------------------------------------------------------------"
+echo -e "\033[1;3mNote: There could be more. Check the file with peframe tool!\033[0m"
+echo -e "------------------------------------------------------------\n"
+malutil-entropycalc ${1} | grep "Entropy" -A 5 -B 3
+
+
+# ------------------
+# Audible alert
+paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+espeak "I am HASHER"
+espeak "You are welcome"
